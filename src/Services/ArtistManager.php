@@ -1,12 +1,7 @@
 <?php
 
-class ArtistManager
+class ArtistManager extends EntityManager
 {
-    public function __construct(
-        protected PDO $connection
-    ) {
-    }
-
     public function find(int $id): array|false
     {
         $request = $this->connection->prepare('SELECT * FROM artists WHERE id = :id');
