@@ -1,0 +1,120 @@
+<?php
+
+require_once '../../src/autoload.php';
+
+$releaseIdExists = isset($_GET['id']);
+$releaseExists = false;
+
+if ($releaseIdExists) {
+    $connection = (new Database())->getConnection();
+    $request = $connection->prepare('
+        SELECT *
+        FROM releases
+        WHERE id = :id
+    ');
+    $request->execute(['id' => $_GET['id']]);
+    $release = $request->fetch();
+    $releaseExists = $release !== false;
+
+    $request = $connection->query('SELECT * FROM artists ORDER BY name ASC');
+    $artists = $request->fetchAll();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $releaseIdExists && $releaseExists) {
+    if (
+        !isset($_POST['title'])
+        || !isset($_POST['thumbnailUrl'])
+        || !isset($_POST['releasedAt'])
+        || !isset($_POST['artist_id'])
+    ) {
+        die('Le formulaire est incomplet.');
+    }
+
+    if (
+        empty($_POST['title'])
+        || empty($_POST['thumbnailUrl'])
+        || empty($_POST['releasedAt'])
+        || empty($_POST['artist_id'])
+    ) {
+        die('Tous les champs requis doivent être renseignés.');
+    }
+
+    $request = (new Database())->getConnection()->prepare(
+        'UPDATE releases a
+        SET title = :title, thumbnailUrl = :thumbnailUrl, releasedAt = :releasedAt, artist_id = :artist_id
+        WHERE a.id = :id'
+    );
+    $request->execute([
+        'id' => $_GET['id'],
+        'title' => $_POST['title'],
+        'thumbnailUrl' => $_POST['thumbnailUrl'],
+        'releasedAt' => $_POST['releasedAt'],
+        'artist_id' => $_POST['artist_id'],
+    ]);
+
+    header('Location: /releases/edit.php?id='.$_GET['id']);
+    exit;
+}
+
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Releases</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+    <?php include '../../templates/navbar.php'; ?>
+
+    <div class="container">
+        <h1>Modifier une release</h1>
+
+        <?php if (!$releaseIdExists) { ?>
+            <div class="alert alert-danger">
+                Aucune release n'est sélectionné.
+            </div>
+        <?php } elseif (!$releaseExists) { ?>
+            <div class="alert alert-danger">
+                La release n'existe pas.
+            </div>
+        <?php } else { ?>
+            <form action="" method="post">
+                <div class="form-group">
+                    <label for="title">Titre</label>
+                    <input type="text" name="title" id="title" placeholder="Titre" value="<?php echo $release['title']; ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="thumbnailUrl">Lien de l'image</label>
+                    <input type="text" name="thumbnailUrl" id="thumbnailUrl" placeholder="Lien de l'image" value="<?php echo $release['thumbnailUrl']; ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="artist">Artiste</label>
+                    <select type="text" name="artist_id" id="artist" required>
+                        <?php foreach ($artists as $artist) { ?>
+                            <option 
+                                value="<?php echo $artist['id']; ?>"
+                                <?php if ($artist['id'] === $release['artist_id']) { echo 'selected'; } ?>
+                            >
+                                <?php echo $artist['name']; ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="releasedAt">Date de sortie</label>
+                    <input type="date" name="releasedAt" id="releasedAt"  value="<?php echo $release['releasedAt']; ?>" required>
+                </div>
+
+                <a href="/releases/index.php" class="btn btn-secondary">Annuler</a>
+                <button class="btn" type="submit">Mettre à jour</button>
+            </form>
+        <?php } ?>
+    </div>
+</body>
+</html>
