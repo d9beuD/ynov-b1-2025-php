@@ -2,13 +2,9 @@
 
 require_once '../../src/autoload.php';
 
-$database = new Database();
-$request = $database->getConnection()->query('
-    SELECT r.*, a.name as artist_name, a.thumbnailUrl as artist_thumbnailUrl
-    FROM releases r
-    LEFT JOIN artists a ON a.id = r.artist_id
-');
-$releases = $request->fetchAll();
+$connection = new Database()->getConnection();
+$releaseManager = new ReleaseManager($connection);
+$releases = $releaseManager->findAll(joinArtist: true);
 
 ?>
 
@@ -38,7 +34,6 @@ $releases = $request->fetchAll();
                         <th>Nom</th>
                         <th>Artiste</th>
                         <th>Date de sortie</th>
-                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,20 +43,16 @@ $releases = $request->fetchAll();
                             <td>
                                 <div class="thumbnail-container">
                                     <img class="thumbnail" src="<?php echo $release['thumbnailUrl']; ?>" alt="Illustration releasee">
-                                    <?php echo $release['title']; ?>
+                                    <a href="/releases/show.php?id=<?php echo $release['id']; ?>"><?php echo $release['title']; ?></a>
                                 </div>
                             </td>
                             <td>
                                 <div class="thumbnail-container">
                                     <img class="thumbnail" src="<?php echo $release['artist_thumbnailUrl']; ?>" alt="Illustration releasee">
-                                    <?php echo $release['artist_name']; ?>
+                                    <a href="/artists/show.php?id=<?php echo $release['artist_id']; ?>"><?php echo $release['artist_name']; ?></a>
                                 </div>
                             </td>
                             <td><?php echo new DateTime($release['releasedAt'])->format('d/m/Y'); ?></td>
-                            <td>
-                                <a href="/releases/edit.php?id=<?php echo $release['id']; ?>">Modifier</a>
-                                <a href="#">Supprimer</a>
-                            </td>
                         </tr>
                     <?php } ?>
                 </tbody>

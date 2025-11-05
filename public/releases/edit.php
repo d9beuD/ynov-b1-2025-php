@@ -4,20 +4,15 @@ require_once '../../src/autoload.php';
 
 $releaseIdExists = isset($_GET['id']);
 $releaseExists = false;
+$connection = (new Database())->getConnection();
+$releaseManager = new ReleaseManager($connection);
+$artistManager = new ArtistManager($connection);
 
 if ($releaseIdExists) {
-    $connection = (new Database())->getConnection();
-    $request = $connection->prepare('
-        SELECT *
-        FROM releases
-        WHERE id = :id
-    ');
-    $request->execute(['id' => $_GET['id']]);
-    $release = $request->fetch();
+    $release = $releaseManager->find($_GET['id']);
     $releaseExists = $release !== false;
 
-    $request = $connection->query('SELECT * FROM artists ORDER BY name ASC');
-    $artists = $request->fetchAll();
+    $artists = $artistManager->findAll();
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $releaseIdExists && $releaseExists) {
@@ -39,18 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $releaseIdExists && $releaseExists)
         die('Tous les champs requis doivent être renseignés.');
     }
 
-    $request = (new Database())->getConnection()->prepare(
-        'UPDATE releases a
-        SET title = :title, thumbnailUrl = :thumbnailUrl, releasedAt = :releasedAt, artist_id = :artist_id
-        WHERE a.id = :id'
+    $releaseManager->update(
+        $_GET['id'],
+        $_POST['title'],
+        $_POST['thumbnailUrl'],
+        new DateTimeImmutable($_POST['releasedAt']),
+        $_POST['artist_id'],
     );
-    $request->execute([
-        'id' => $_GET['id'],
-        'title' => $_POST['title'],
-        'thumbnailUrl' => $_POST['thumbnailUrl'],
-        'releasedAt' => $_POST['releasedAt'],
-        'artist_id' => $_POST['artist_id'],
-    ]);
 
     header('Location: /releases/edit.php?id='.$_GET['id']);
     exit;

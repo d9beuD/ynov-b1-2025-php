@@ -4,6 +4,8 @@ require_once '../../src/autoload.php';
 
 $connection = (new Database())->getConnection();
 $artistManager = new ArtistManager($connection);
+$releaseManager = new ReleaseManager($connection);
+
 $artists = $artistManager->findAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -23,15 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die('Tous les champs requis doivent être renseignés.');
     }
 
-    $request = (new Database())->getConnection()->prepare(
-        'INSERT INTO releases(title, thumbnailUrl, releasedAt, artist_id) VALUES(:title, :thumbnailUrl, :releasedAt, :artist_id)'
+    $releaseManager->persist(
+        $_POST['title'],
+        $_POST['thumbnailUrl'],
+        new DateTimeImmutable($_POST['releasedAt']),
+        $_POST['artist_id'],
     );
-    $request->execute([
-        'title' => $_POST['title'],
-        'thumbnailUrl' => $_POST['thumbnailUrl'],
-        'releasedAt' => $_POST['releasedAt'],
-        'artist_id' => $_POST['artist_id'],
-    ]);
 
     header('Location: /releases/index.php');
     exit;
