@@ -3,20 +3,8 @@
 require_once '../../src/autoload.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (
-        !isset($_POST['name'])
-        || !isset($_POST['thumbnailUrl'])
-        || !isset($_POST['description'])
-    ) {
+    if (!Utils::verifyParams(['name', 'thumbnailUrl', 'description'])) {
         die('Le formulaire est incomplet.');
-    }
-
-    if (
-        empty($_POST['name'])
-        || empty($_POST['thumbnailUrl'])
-        || empty($_POST['description'])
-    ) {
-        die('Tous les champs requis doivent être renseignés.');
     }
 
     $artistManager = new ArtistManager((new Database())->getConnection());

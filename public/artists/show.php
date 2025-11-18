@@ -2,7 +2,7 @@
 
 require_once '../../src/autoload.php';
 
-$artistIdExists = isset($_GET['id']);
+$artistIdExists = Utils::verifyParams(['id'], inPost: false);
 $artistExists = false;
 
 $connection = (new Database())->getConnection();

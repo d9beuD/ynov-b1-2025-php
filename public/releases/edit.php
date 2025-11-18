@@ -2,7 +2,7 @@
 
 require_once '../../src/autoload.php';
 
-$releaseIdExists = isset($_GET['id']);
+$releaseIdExists = Utils::verifyParams(['id'], inPost: false);
 $releaseExists = false;
 $connection = (new Database())->getConnection();
 $releaseManager = new ReleaseManager($connection);
@@ -16,22 +16,8 @@ if ($releaseIdExists) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $releaseIdExists && $releaseExists) {
-    if (
-        !isset($_POST['title'])
-        || !isset($_POST['thumbnailUrl'])
-        || !isset($_POST['releasedAt'])
-        || !isset($_POST['artist_id'])
-    ) {
+    if ( Utils::verifyParams(['title', 'thumnailUrl', 'releasedAt', 'artist_id'])) {
         die('Le formulaire est incomplet.');
-    }
-
-    if (
-        empty($_POST['title'])
-        || empty($_POST['thumbnailUrl'])
-        || empty($_POST['releasedAt'])
-        || empty($_POST['artist_id'])
-    ) {
-        die('Tous les champs requis doivent être renseignés.');
     }
 
     $releaseManager->update(

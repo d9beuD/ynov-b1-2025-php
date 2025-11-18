@@ -2,7 +2,7 @@
 
 require_once '../../src/autoload.php';
 
-$artistIdExists = isset($_GET['id']);
+$artistIdExists = Utils::verifyParams(['id'], inPost: false);
 $artistExists = false;
 
 if ($artistIdExists) {
@@ -16,20 +16,8 @@ if ($artistIdExists) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $artistIdExists && $artistExists) {
-    if (
-        !isset($_POST['name'])
-        || !isset($_POST['thumbnailUrl'])
-        || !isset($_POST['description'])
-    ) {
+    if (Utils::verifyParams(['name', 'thumbnailUrl', 'description'])) {
         die('Le formulaire est incomplet.');
-    }
-
-    if (
-        empty($_POST['name'])
-        || empty($_POST['thumbnailUrl'])
-        || empty($_POST['description'])
-    ) {
-        die('Tous les champs requis doivent être renseignés.');
     }
 
     $request = (new Database())->getConnection()->prepare(

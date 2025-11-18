@@ -9,20 +9,8 @@ $releaseManager = new ReleaseManager($connection);
 $artists = $artistManager->findAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (
-        !isset($_POST['title'])
-        || !isset($_POST['thumbnailUrl'])
-        || !isset($_POST['artist_id'])
-    ) {
+    if ( Utils::verifyParams(['title', 'thumbnailUrl', 'artist_id'])) {
         die('Le formulaire est incomplet.');
-    }
-
-    if (
-        empty($_POST['title'])
-        || empty($_POST['thumbnailUrl'])
-        || empty($_POST['artist_id'])
-    ) {
-        die('Tous les champs requis doivent être renseignés.');
     }
 
     $releaseManager->persist(

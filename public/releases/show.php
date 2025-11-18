@@ -2,7 +2,7 @@
 
 require_once '../../src/autoload.php';
 
-$releaseIdExists = isset($_GET['id']);
+$releaseIdExists = Utils::verifyParams(['id'], inPost: false);
 $releaseExists = false;
 
 $connection = (new Database())->getConnection();
